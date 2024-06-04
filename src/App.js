@@ -1,6 +1,6 @@
 import './App.css';
 // eslint-disable-next-line import/order
-import { Component } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { formatDistanceToNow } from 'date-fns/formatDistanceToNow';
@@ -9,167 +9,135 @@ import Header from './components/header/header';
 import Footer from './components/footer/footer';
 import TodoList from './components/todoList/todoList';
 
-class App extends Component {
-  constructor() {
-    super();
-    this.state = {
-      todoDate: [
-        {
-          id: 3,
-          complited: true,
-          description: 'Completed task',
-          createdTime: Date.now(),
-          created: 'created 0 seconds ago',
-          editing: false,
-        },
-        {
-          id: 4,
-          complited: false,
-          description: 'Completed task',
-          createdTime: Date.now(),
-          created: 'created 0 seconds ago',
-          editing: false,
-        },
-        {
-          id: 1,
-          complited: false,
-          description: 'Completed task',
-          createdTime: Date.now(),
-          created: 'created 0 seconds ago',
-          editing: false,
-        },
-      ],
-      compliteCount: 2,
-      activeBtn: 'All',
-    };
-  }
+const data = [
+  {
+    id: 3,
+    complited: true,
+    description: 'Completed task',
+    createdTime: Date.now(),
+    created: 'created 0 seconds ago',
+    editing: false,
+  },
+  {
+    id: 4,
+    complited: false,
+    description: 'Completed task',
+    createdTime: Date.now(),
+    created: 'created 0 seconds ago',
+    editing: false,
+  },
+  {
+    id: 1,
+    complited: false,
+    description: 'Completed task',
+    createdTime: Date.now(),
+    created: 'created 0 seconds ago',
+    editing: false,
+  },
+];
 
-  deleteElem = (id) => {
-    this.setState((state) => {
-      const index = state.todoDate.findIndex((item) => item.id === id);
+function App() {
+  const [todoDate, setTodoDate] = useState(data);
+  const [compliteCount, setCompliteCount] = useState(2);
+  const [activeBtn, setActiveBtn] = useState('All');
 
-      return { ...state, todoDate: [...state.todoDate.slice(0, index), ...state.todoDate.slice(index + 1)] };
-    });
-    this.complitedCount();
-  };
-
-  complitedTodo = (id) => {
-    this.setState((state) => {
-      const index = state.todoDate.findIndex((item) => item.id === id);
-      const complitedChange = { ...state.todoDate[index], complited: !state.todoDate[index].complited };
-
-      return {
-        ...state,
-        todoDate: [...state.todoDate.slice(0, index), complitedChange, ...state.todoDate.slice(index + 1)],
-      };
-    });
-    this.complitedCount();
-  };
-
-  editingTodo = (id) => {
-    this.setState(({ todoDate }) => {
-      const newData = todoDate.map((item) => {
-        if (id === item.id) {
-          return {
-            ...item,
-            editing: true,
-          };
-        }
+  const editingTodo = (id) => {
+    const newData = todoDate.map((item) => {
+      if (id === item.id) {
         return {
           ...item,
-          editing: false,
+          editing: true,
         };
-      });
-
-      return { todoDate: newData };
+      }
+      return {
+        ...item,
+        editing: false,
+      };
     });
+    setTodoDate(newData);
   };
 
-  saveEdit = (id, value) => {
-    this.setState(({ todoDate }) => {
-      const index = todoDate.findIndex((item) => item.id === id);
-      const editingChange = { ...todoDate[index], description: value, editing: !todoDate[index].editing };
+  const saveEdit = (id, value) => {
+    const index = todoDate.findIndex((item) => item.id === id);
+    const editingChange = { ...todoDate[index], description: value, editing: !todoDate[index].editing };
+    setTodoDate([...todoDate.slice(0, index), editingChange, ...todoDate.slice(index + 1)]);
+  };
 
-      return { todoDate: [...todoDate.slice(0, index), editingChange, ...todoDate.slice(index + 1)] };
+  const complitedCount = () => {
+    let compCount = 0;
+    todoDate.forEach((item) => {
+      if (!item.complited) {
+        compCount += 1;
+      }
     });
+    setCompliteCount(compCount);
   };
 
-  addTodo = (elem) => {
-    this.setState((state) => {
-      return { todoDate: [...state.todoDate, elem] };
+  const addTodo = (elem) => {
+    setTodoDate([...todoDate, elem]);
+    complitedCount();
+  };
+
+  const delComplited = () => {
+    setTodoDate(todoDate.filter((item) => !item.complited));
+    complitedCount();
+  };
+
+  const setActive = (value) => {
+    setActiveBtn(value);
+  };
+
+  const complitedTodo = (id) => {
+    const index = todoDate.findIndex((item) => item.id === id);
+    const complitedChange = { ...todoDate[index], complited: !todoDate[index].complited };
+    setTodoDate([...todoDate.slice(0, index), complitedChange, ...todoDate.slice(index + 1)]);
+    complitedCount();
+  };
+
+  const deleteElem = (id) => {
+    const index = todoDate.findIndex((item) => item.id === id);
+    setTodoDate([...todoDate.slice(0, index), ...todoDate.slice(index + 1)]);
+    complitedCount();
+  };
+
+  const timer = useRef();
+  const cb = () => {
+    const updateTime = todoDate.map((item) => {
+      return {
+        ...item,
+        created: `created ${formatDistanceToNow(item.createdTime, { addSuffix: true, includeSeconds: true })}`,
+      };
     });
-    this.complitedCount();
+    setTodoDate(updateTime);
   };
+  useEffect(() => {
+    clearInterval(timer.current);
+    timer.current = setInterval(cb, 5000);
+  }, [todoDate]);
 
-  delComplited = () => {
-    this.setState((state) => {
-      return { todoDate: state.todoDate.filter((item) => !item.complited) };
-    });
-    this.complitedCount();
-  };
-
-  complitedCount = () => {
-    this.setState((state) => {
-      let compCount = 0;
-      state.todoDate.forEach((item) => {
-        if (!item.complited) {
-          compCount += 1;
-        }
-      });
-
-      return { ...state, compliteCount: compCount };
-    });
-  };
-
-  timeUpdate = () => {
-    const cb = () => {
-      this.setState((state) => {
-        const { todoDate } = this.state;
-        const updateTime = todoDate.map((item) => {
-          return {
-            ...item,
-            created: `created ${formatDistanceToNow(item.createdTime, { addSuffix: true, includeSeconds: true })}`,
-          };
-        });
-        return { ...state, todoDate: updateTime };
-      });
-    };
-    setInterval(cb, 5000);
-  };
-
-  setActive = (value) => {
-    this.setState((state) => {
-      return { ...state, activeBtn: value };
-    });
-  };
-
-  render() {
-    const { todoDate, compliteCount, activeBtn } = this.state;
-    this.timeUpdate();
-    return (
-      <div className="App">
-        <section className="todoapp">
-          <Header addTodo={this.addTodo} />
-          <section className="main">
-            <TodoList
-              deletElem={this.deleteElem}
-              editingTodo={this.editingTodo}
-              complitedTodo={this.complitedTodo}
-              saveEdit={this.saveEdit}
-              items={todoDate}
-              activeBtn={activeBtn}
-            />
-            <Footer
-              compliteCount={compliteCount}
-              activeBtn={activeBtn}
-              setActive={this.setActive}
-              delComplited={this.delComplited}
-            />
-          </section>
+  return (
+    <div className="App">
+      <section className="todoapp">
+        <Header addTodo={addTodo} />
+        <section className="main">
+          <TodoList
+            deletElem={deleteElem}
+            editingTodo={editingTodo}
+            complitedTodo={complitedTodo}
+            saveEdit={saveEdit}
+            items={todoDate}
+            activeBtn={activeBtn}
+          />
+          <Footer
+            compliteCount={compliteCount}
+            activeBtn={activeBtn}
+            setActive={setActive}
+            delComplited={delComplited}
+          />
         </section>
-      </div>
-    );
-  }
+      </section>
+    </div>
+  );
 }
 
 export default App;

@@ -1,21 +1,16 @@
 import './header.css';
-import { Component } from 'react';
 import PropTypes from 'prop-types';
+import { useState } from 'react';
 
-class Header extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      textValue: '',
-    };
-  }
+function Header(props) {
+  const { addTodo } = props;
+  const [textValue, setTextValue] = useState('');
 
-  inputHandler = (e) => {
-    this.setState({ textValue: e.currentTarget.value });
+  const inputHandler = (e) => {
+    setTextValue(e.currentTarget.value);
   };
 
-  createTodo = () => {
-    const { textValue } = this.state;
+  const createTodo = () => {
     const newTodo = {
       id: Date.now(),
       complited: false,
@@ -24,34 +19,30 @@ class Header extends Component {
       created: 'created 0 seconds ago',
       editing: false,
     };
-    this.setState({ textValue: '' });
+    setTextValue('');
     return newTodo;
   };
 
-  render() {
-    const { textValue } = this.state;
-    const { addTodo } = this.props;
-    return (
-      <header className="header">
-        <h1>todos</h1>
-        <input
-          onChange={this.inputHandler}
-          value={textValue}
-          className="new-todo"
-          placeholder="What needs to be done?"
-          onBlur={() => {
-            return textValue ? addTodo(this.createTodo()) : false;
-          }}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              return textValue ? addTodo(this.createTodo()) : false;
-            }
-            return undefined;
-          }}
-        />
-      </header>
-    );
-  }
+  return (
+    <header className="header">
+      <h1>todos</h1>
+      <input
+        onChange={inputHandler}
+        value={textValue}
+        className="new-todo"
+        placeholder="What needs to be done?"
+        onBlur={() => {
+          return textValue ? addTodo(createTodo()) : '';
+        }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            return textValue ? addTodo(createTodo()) : '';
+          }
+          return '';
+        }}
+      />
+    </header>
+  );
 }
 
 Header.propTypes = {
