@@ -1,6 +1,6 @@
 import './App.css';
 // eslint-disable-next-line import/order
-import { Component } from 'react';
+import React, { Component } from 'react';
 
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { formatDistanceToNow } from 'date-fns/formatDistanceToNow';
@@ -10,6 +10,10 @@ import Footer from './components/footer/footer';
 import TodoList from './components/todoList/todoList';
 
 class App extends Component {
+  timer = React.createRef();
+
+  playTimer = React.createRef();
+
   constructor() {
     super();
     this.state = {
@@ -21,6 +25,8 @@ class App extends Component {
           createdTime: Date.now(),
           created: 'created 0 seconds ago',
           editing: false,
+          timer: null,
+          play: false,
         },
         {
           id: 4,
@@ -29,6 +35,8 @@ class App extends Component {
           createdTime: Date.now(),
           created: 'created 0 seconds ago',
           editing: false,
+          timer: 13,
+          play: false,
         },
         {
           id: 1,
@@ -37,11 +45,38 @@ class App extends Component {
           createdTime: Date.now(),
           created: 'created 0 seconds ago',
           editing: false,
+          timer: null,
+          play: false,
         },
       ],
       compliteCount: 2,
       activeBtn: 'All',
     };
+  }
+
+  componentDidMount() {
+    let todoDate = localStorage.getItem('todoDate');
+    todoDate = JSON.parse(todoDate);
+    if (todoDate) {
+      this.setState({ todoDate });
+    }
+    this.timer.current = setInterval(this.timeUpdate, 5000);
+    this.playTimer.current = setInterval(this.playTimeUpdate, 1000);
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    const { todoDate } = this.state;
+    if (todoDate.length !== prevState.todoDate.length) {
+      clearInterval(this.timer.current);
+      this.timer.current = setInterval(this.timeUpdate, 5000);
+      clearInterval(this.playTimer.current);
+      this.playTimer.current = setInterval(this.playTimeUpdate, 1000);
+    }
+  }
+
+  async componentWillUnmount() {
+    clearInterval(this.timer.current);
+    clearInterval(this.playTimer.current);
   }
 
   deleteElem = (id) => {
@@ -95,10 +130,36 @@ class App extends Component {
   };
 
   addTodo = (elem) => {
+    if (elem.description) {
+      this.setState((state) => {
+        return { todoDate: [...state.todoDate, elem] };
+      });
+      this.complitedCount();
+    }
+  };
+
+  playHandler = (id) => {
     this.setState((state) => {
-      return { todoDate: [...state.todoDate, elem] };
+      const index = state.todoDate.findIndex((item) => item.id === id);
+      const complitedChange = { ...state.todoDate[index], play: true };
+
+      return {
+        ...state,
+        todoDate: [...state.todoDate.slice(0, index), complitedChange, ...state.todoDate.slice(index + 1)],
+      };
     });
-    this.complitedCount();
+  };
+
+  pauseHandler = (id) => {
+    this.setState((state) => {
+      const index = state.todoDate.findIndex((item) => item.id === id);
+      const complitedChange = { ...state.todoDate[index], play: false };
+
+      return {
+        ...state,
+        todoDate: [...state.todoDate.slice(0, index), complitedChange, ...state.todoDate.slice(index + 1)],
+      };
+    });
   };
 
   delComplited = () => {
@@ -122,19 +183,41 @@ class App extends Component {
   };
 
   timeUpdate = () => {
-    const cb = () => {
-      this.setState((state) => {
-        const { todoDate } = this.state;
-        const updateTime = todoDate.map((item) => {
+    this.setState((state) => {
+      const { todoDate } = this.state;
+      const updateTime = todoDate.map((item) => {
+        return {
+          ...item,
+          created: `created ${formatDistanceToNow(item.createdTime, { addSuffix: true, includeSeconds: true })}`,
+        };
+      });
+      return { ...state, todoDate: updateTime };
+    });
+  };
+
+  playTimeUpdate = () => {
+    this.setState((state) => {
+      const { todoDate } = this.state;
+      const updateTime = todoDate.map((item) => {
+        const hasDecrement = !item.timer || item.timer === 0 || item.complited || item.play;
+        if (!hasDecrement) {
           return {
             ...item,
-            created: `created ${formatDistanceToNow(item.createdTime, { addSuffix: true, includeSeconds: true })}`,
+            timer: item.timer - 1,
           };
-        });
-        return { ...state, todoDate: updateTime };
+        }
+        if (item.timer === 0) {
+          return {
+            ...item,
+            complited: true,
+            timer: null,
+          };
+        }
+        return { ...item };
       });
-    };
-    setInterval(cb, 5000);
+      localStorage.setItem('todoDate', JSON.stringify(updateTime));
+      return { ...state, todoDate: updateTime };
+    });
   };
 
   setActive = (value) => {
@@ -145,7 +228,6 @@ class App extends Component {
 
   render() {
     const { todoDate, compliteCount, activeBtn } = this.state;
-    this.timeUpdate();
     return (
       <div className="App">
         <section className="todoapp">
@@ -158,6 +240,8 @@ class App extends Component {
               saveEdit={this.saveEdit}
               items={todoDate}
               activeBtn={activeBtn}
+              playHandler={this.playHandler}
+              pauseHandler={this.pauseHandler}
             />
             <Footer
               compliteCount={compliteCount}

@@ -4,7 +4,7 @@ import TodoItem from '../todoItem/todoItem';
 import propTypesItem from '../../types/types';
 import './todoList.css';
 
-function TodoList({ deletElem, complitedTodo, editingTodo, saveEdit, items, activeBtn }) {
+function TodoList({ deletElem, complitedTodo, editingTodo, saveEdit, items, activeBtn, playHandler, pauseHandler }) {
   const dataList = items.map((item) => {
     if (activeBtn === 'Active' && item.complited) return undefined;
     if (activeBtn === 'Completed' && !item.complited) return undefined;
@@ -17,6 +17,8 @@ function TodoList({ deletElem, complitedTodo, editingTodo, saveEdit, items, acti
           saveEdit={saveEdit}
           editingTodo={editingTodo}
           deletElem={deletElem}
+          playHandler={playHandler}
+          pauseHandler={pauseHandler}
         />
       </li>
     );
