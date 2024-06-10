@@ -1,38 +1,32 @@
 import './header.css';
-import { Component } from 'react';
+import { useState } from 'react';
 import PropTypes from 'prop-types';
 import { minutesToSeconds } from 'date-fns';
 
-class Header extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      textValue: '',
-      minutes: '',
-      seconds: '',
-    };
-  }
+function Header({ addTodo }) {
+  const [textValue, setTextValue] = useState('');
+  const [minutes, setMinutes] = useState('');
+  const [seconds, setSeconds] = useState('');
 
-  inputHandler = (e) => {
-    this.setState({ textValue: e.currentTarget.value });
+  const inputHandler = (e) => {
+    setTextValue(e.currentTarget.value);
   };
 
-  minutesInputHandler = (e) => {
+  const minutesInputHandler = (e) => {
     const isNubmer = Number.isNaN(+e.currentTarget.value[e.currentTarget.value.length - 1]);
     if (!isNubmer) {
-      this.setState({ minutes: e.currentTarget.value.replace(/\s+/g, '') });
+      setMinutes(e.currentTarget.value.replace(/\s+/g, ''));
     }
   };
 
-  secondsInputHandler = (e) => {
+  const secondsInputHandler = (e) => {
     const isNubmer = Number.isNaN(+e.currentTarget.value[e.currentTarget.value.length - 1]);
     if (!isNubmer) {
-      this.setState({ seconds: e.currentTarget.value.replace(/\s+/g, '') });
+      setSeconds(e.currentTarget.value.replace(/\s+/g, ''));
     }
   };
 
-  createTodo = () => {
-    const { textValue, minutes, seconds } = this.state;
+  const createTodo = () => {
     const newTodo = {
       id: Date.now(),
       complited: false,
@@ -42,59 +36,57 @@ class Header extends Component {
       editing: false,
       timer: minutesToSeconds(+minutes) + +seconds,
     };
-    this.setState({ textValue: '', minutes: '', seconds: '' });
+    setTextValue('');
+    setSeconds('');
+    setMinutes('');
     return newTodo;
   };
 
-  render() {
-    const { textValue, minutes, seconds } = this.state;
-    const { addTodo } = this.props;
-    return (
-      <header className="header">
-        <h1>todos</h1>
-        <form className="new-todo-form">
-          <input
-            onChange={this.inputHandler}
-            value={textValue}
-            className="new-todo"
-            placeholder="What needs to be done?"
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                return textValue ? addTodo(this.createTodo()) : false;
-              }
-              return undefined;
-            }}
-          />
-          <input
-            className="new-todo-form__timer"
-            placeholder="Min"
-            name="minutes"
-            onChange={this.minutesInputHandler}
-            value={minutes}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                return textValue ? addTodo(this.createTodo()) : false;
-              }
-              return undefined;
-            }}
-          />
-          <input
-            className="new-todo-form__timer"
-            placeholder="Sec"
-            name="seconds"
-            onChange={this.secondsInputHandler}
-            value={seconds}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                return textValue ? addTodo(this.createTodo()) : false;
-              }
-              return undefined;
-            }}
-          />
-        </form>
-      </header>
-    );
-  }
+  return (
+    <header className="header">
+      <h1>todos</h1>
+      <form className="new-todo-form">
+        <input
+          onChange={inputHandler}
+          value={textValue}
+          className="new-todo"
+          placeholder="What needs to be done?"
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              return textValue ? addTodo(createTodo()) : false;
+            }
+            return undefined;
+          }}
+        />
+        <input
+          className="new-todo-form__timer"
+          placeholder="Min"
+          name="minutes"
+          onChange={minutesInputHandler}
+          value={minutes}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              return textValue ? addTodo(createTodo()) : false;
+            }
+            return undefined;
+          }}
+        />
+        <input
+          className="new-todo-form__timer"
+          placeholder="Sec"
+          name="seconds"
+          onChange={secondsInputHandler}
+          value={seconds}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              return textValue ? addTodo(createTodo()) : false;
+            }
+            return undefined;
+          }}
+        />
+      </form>
+    </header>
+  );
 }
 
 Header.propTypes = {
