@@ -104,7 +104,7 @@ function App() {
   };
 
   const playTimeUpdate = (item) => {
-    const hasDecrement = !item.timer || item.timer === 0 || item.complited || item.play;
+    const hasDecrement = !item.timer || item.timer === 0 || item.complited || !item.play;
     if (!hasDecrement) {
       return {
         ...item,

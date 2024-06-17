@@ -12,16 +12,24 @@ function Header({ addTodo }) {
     setTextValue(e.currentTarget.value);
   };
 
+  const validateNum = (str, time) => {
+    const min = time === 'minutes' ? +str : minutes;
+    const sec = time === 'seconds' ? +str : seconds;
+    const isNotNum = Number.isNaN(+str[str.length - 1]);
+    const isEmpty = str === '';
+    const isHour = min * 60 + sec <= 3600;
+    const isUnderSixty = +str <= 60;
+    return isEmpty || (!isNotNum && isUnderSixty && isHour);
+  };
+
   const minutesInputHandler = (e) => {
-    const isNubmer = Number.isNaN(+e.currentTarget.value[e.currentTarget.value.length - 1]);
-    if (!isNubmer) {
+    if (validateNum(e.currentTarget.value, 'minutes')) {
       setMinutes(e.currentTarget.value.replace(/\s+/g, ''));
     }
   };
 
   const secondsInputHandler = (e) => {
-    const isNubmer = Number.isNaN(+e.currentTarget.value[e.currentTarget.value.length - 1]);
-    if (!isNubmer) {
+    if (validateNum(e.currentTarget.value, 'seconds')) {
       setSeconds(e.currentTarget.value.replace(/\s+/g, ''));
     }
   };
@@ -35,6 +43,7 @@ function Header({ addTodo }) {
       created: 'created 0 seconds ago',
       editing: false,
       timer: minutesToSeconds(+minutes) + +seconds,
+      play: false,
     };
     setTextValue('');
     setSeconds('');

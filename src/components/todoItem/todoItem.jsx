@@ -50,10 +50,10 @@ function TodoItem({ item, deletElem, complitedTodo, editingTodo, pauseHandler, p
           <span className="title">{item.description}</span>
           {item.timer !== null && (
             <span className="description">
-              {item.play ? (
-                <button type="button" onClick={() => pauseHandler(item.id)} className="icon icon-play" />
+              {!item.play ? (
+                <button type="button" onClick={() => playHandler(item.id)} className="icon icon-play" />
               ) : (
-                <button type="button" onClick={() => playHandler(item.id)} className="icon icon-pause" />
+                <button type="button" onClick={() => pauseHandler(item.id)} className="icon icon-pause" />
               )}
               {customDate}
             </span>
